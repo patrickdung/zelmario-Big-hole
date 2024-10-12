@@ -1,7 +1,10 @@
-version: '3'
+version: '3.8'
 services:
   influxdb:
-    image: influxdb:latest
+    # image: influxdb:latest
+    image: docker.io/library/influxdb:2.7.10
+    container_name: "influxdb"
+    hostname: "influxdb"
     ports:
       - "8086:8086"
     environment:
@@ -11,19 +14,31 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=percona
       - DOCKER_INFLUXDB_INIT_BUCKET=ftdc
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=ftdc
+    networks:
+      - ftdc 
     volumes:
-      - influxdb-data:/var/lib/influxdb
+      # - influxdb-data:/var/lib/influxdb
+      - /data/container/app/ftdc/influxdb:/var/lib/influxdb2
 
   grafana:
-    image: grafana/grafana:latest
+    # image: grafana/grafana:latest
+    # image: docker.io/grafana/grafana:latest
+    image: docker.io/grafana/grafana-oss:11.2.2
+    container_name: "ftdc-grafana"
+    hostname: "ftdc-grafana"
+    cap_drop:
+      - ALL
     ports:
       - "3001:3000"
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_AUTH_DISABLE_LOGIN_FORM=false
+      - CHECK_ORIGIN=false
     links:
       - influxdb
+    networks:
+      - ftdc 
     volumes:
       - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - ./grafana/main.yaml:/etc/grafana/provisioning/dashboards/main.yaml
@@ -31,11 +46,21 @@ services:
 
   metrics-processor:
     build: .
+    cap_drop:
+      - ALL
     volumes:
-      - ./diagnostic.data:/diagnostic.data
+      # - ./diagnostic.data:/diagnostic.data
+      - /data/container/app/ftdc/diagnostic.data:/diagnostic.data
     depends_on:
       - influxdb
+    links:
+      - influxdb
+    networks:
+      - ftdc 
     entrypoint: ["/scripts/run_scripts.sh", "/diagnostic.data"]
 
-volumes:
-  influxdb-data:
+networks:
+  ftdc: {}
+
+# volumes:
+#   influxdb-data:

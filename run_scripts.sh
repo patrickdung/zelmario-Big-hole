@@ -5,7 +5,8 @@
 # Function to handle Ctrl-C
 cleanup() {
     echo "Shutting down Docker Compose..."
-    docker-compose down
+    # docker-compose down
+    podman-compose down
     echo "Script terminated."
     exit 0
 }
