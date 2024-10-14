@@ -59,7 +59,7 @@ export -f process_file
 find "$METRICS_DIR" -name 'metrics.*' -print0 | xargs -0 -n 1 -P 1 bash -c 'process_file "$0"'
 
 # run python script to show the dashbopard url
-python3 /scripts/get_url.py 
+# python3 /scripts/get_url.py 
 
 echo "Press Ctrl-C when you've finished to analyze the dashboard."
 

@@ -1,3 +1,7 @@
+# podman with victoriametrics
+- All the metrics starts with ftdc_
+- Dashboard is not migrated from influxdb to prometheus/victoriametrics
+
 # Big-hole
 View all MongoDB FTDC Metrics that you want in Grafana.
 

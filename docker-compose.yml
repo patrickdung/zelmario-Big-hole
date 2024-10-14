@@ -1,11 +1,17 @@
 version: '3.8'
 services:
-  influxdb:
-    # image: influxdb:latest
-    image: docker.io/library/influxdb:2.7.10
-    container_name: "influxdb"
-    hostname: "influxdb"
+  ftdc-victoriametrics:
+    image: docker.io/victoriametrics/victoria-metrics:v1.104.0
+    container_name: "ftdc-victoriametrics"
+    hostname: "ftdc-victoriametrics"
+    command:
+      - "--storageDataPath=/storage"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8086"
+      - "--dedup.minScrapeInterval=60s"
+      - "--maxInsertRequestSize=3GB"
     ports:
+      - "28428:8428"
       - "8086:8086"
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
@@ -17,8 +23,12 @@ services:
     networks:
       - ftdc 
     volumes:
-      # - influxdb-data:/var/lib/influxdb
-      - /data/container/app/ftdc/influxdb:/var/lib/influxdb2
+      # # - /data/container/app/ftdc/victoriametrics:/storage
+      # - '--storageDataPath=/storage'    # Set the storage path
+      - type: tmpfs
+        target: /storage
+        tmpfs:
+          size: 1000000000
 
   grafana:
     # image: grafana/grafana:latest
@@ -36,7 +46,7 @@ services:
       - GF_AUTH_DISABLE_LOGIN_FORM=false
       - CHECK_ORIGIN=false
     links:
-      - influxdb
+      - ftdc-victoriametrics
     networks:
       - ftdc 
     volumes:
@@ -52,15 +62,12 @@ services:
       # - ./diagnostic.data:/diagnostic.data
       - /data/container/app/ftdc/diagnostic.data:/diagnostic.data
     depends_on:
-      - influxdb
+      - ftdc-victoriametrics
     links:
-      - influxdb
+      - ftdc-victoriametrics
     networks:
       - ftdc 
     entrypoint: ["/scripts/run_scripts.sh", "/diagnostic.data"]
 
 networks:
   ftdc: {}
-
-# volumes:
-#   influxdb-data:
